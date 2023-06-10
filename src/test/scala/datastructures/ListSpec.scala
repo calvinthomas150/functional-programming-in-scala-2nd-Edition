@@ -121,4 +121,9 @@ class ListSpec extends AnyFlatSpec with should.Matchers {
     List.zipWith(nonEmptyList, List.drop(nonEmptyList, 2), _ + _) should be(List(4, 6))
   }
 
+  it should "correctly find when a subsequence exists using the hasSubsequence function" in {
+    List.hasSubsequence(nonEmptyList, List.drop(nonEmptyList, 2)) should be (true)
+    List.hasSubsequence(nonEmptyList, List(4,3)) should be (false)
+  }
+
 }

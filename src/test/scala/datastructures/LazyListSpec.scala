@@ -15,19 +15,19 @@ class LazyListSpec extends AnyFlatSpec with should.Matchers:
     LazyList.empty.toList should be (Nil)
 
   "take" should "return a new LazyList containing the first n elements of the LazyList" in:
-    LazyList(1,2,3,4,5,6).take(3).toList should be(LazyList(1,2,3).toList)
+    LazyList(1,2,3,4,5,6).take(3).toList should be(List(1,2,3))
 
   it should "return an empty LazyList the original LazyList is empty" in:
     LazyList.empty.take(5) should be(LazyList.empty)
 
   "drop" should "return a new LazyList without the first n elements of the LazyList" in:
-    LazyList(1,2,3,4,5,6).drop(3).toList should be(LazyList(4,5,6).toList)
+    LazyList(1,2,3,4,5,6).drop(3).toList should be(List(4,5,6))
 
   it should "return an empty LazyList if the original LazyList is empty" in:
     LazyList.empty.drop(5) should be(LazyList.empty)
 
   "takeWhile" should "return a new LazyList with all the elements until the predicate does not hold" in:
-    LazyList(1,2,3,4,5,6).takeWhile(_ < 5).toList should be(LazyList(1,2,3,4).toList)
+    LazyList(1,2,3,4,5,6).takeWhile(_ < 5).toList should be(List(1,2,3,4))
 
   "forAll" should "return true if the predicate matches for all values in the LazyList" in:
     LazyList(1,2,3,4,5,6).forAll(_ < 7) should be(true)
@@ -51,17 +51,34 @@ class LazyListSpec extends AnyFlatSpec with should.Matchers:
     LazyList.empty.headOption should be(None)
 
   "map" should "apply the provided function to the values in the LazyList" in:
-    LazyList(1,2,3,4,5,6).map(_ * 2).toList should be(LazyList(2,4,6,8,10,12).toList)
+    LazyList(1,2,3,4,5,6).map(_ * 2).toList should be(List(2,4,6,8,10,12))
 
   "filter" should "keep only the elements that match the predicate" in:
-    LazyList(1,2,3,4,5,6).filter(_ < 4).toList should be(LazyList(1,2,3).toList)
+    LazyList(1,2,3,4,5,6).filter(_ < 4).toList should be(List(1,2,3))
 
   "append" should "combine the two lists together in the correct order" in:
-    LazyList(1,2,3,4,5,6).append(LazyList(7,8,9,10)).toList should be(LazyList(1,2,3,4,5,6,7,8,9,10).toList)
+    LazyList(1,2,3,4,5,6).append(LazyList(7,8,9,10)).toList should be(List(1,2,3,4,5,6,7,8,9,10))
 
   "flatMap" should "perform the function on a LazyList and flatten the result" in:
-    LazyList(1,2,3,4,5,6).flatMap(i => LazyList(i, i + 1)).toList should be(LazyList(1,2,2,3,3,4,4,5,5,6,6,7).toList)
+    LazyList(1,2,3,4,5,6).flatMap(i => LazyList(i, i + 1)).toList should be(List(1,2,2,3,3,4,4,5,5,6,6,7))
 
+  "continually" should "keep generating the same value forever" in:
+    LazyList.continually[Int](1).take(5).toList should be(List(1,1,1,1,1))
 
+  "from" should "generate an infinite lazy list starting from n" in:
+    LazyList.from(5).take(5).toList should be(List(5,6,7,8,9))
 
+  "fibs" should "return an infinite list of the fibonacci sequence" in:
+    LazyList.fibs.take(10).toList should be(List(0,1,1,2,3,5,8,13,21,34))
 
+  "zipAll" should "zip together should zip together with Some values where the value exists and None when it doesn't" in:
+    LazyList(1,2,3,4,5).zipAll(LazyList(1,2,3,4)).toList should be (List((Some(1),Some(1)),(Some(2),Some(2)),(Some(3),Some(3)),(Some(4),Some(4)),(Some(5),None)))
+
+    LazyList(1, 2, 3, 4).zipAll(LazyList(1, 2, 3, 4, 5)).toList should be (List((Some(1), Some(1)), (Some(2), Some(2)), (Some(3), Some(3)), (Some(4), Some(4)), (None, Some(5))))
+
+    LazyList(1, 2, 3, 4, 5).zipAll(LazyList(1, 2, 3, 4, 5)).toList should be
+    List((Some(1), Some(1)), (Some(2), Some(2)), (Some(3), Some(3)), (Some(4), Some(4)), (Some(5), Some(5)))
+
+  "zipWith" should "correctly add pairwise when using the zipWith function with addition and two lists of the same size" in {
+    LazyList(1,2,3,4).zipWith(LazyList(1,2,3,4))(_ + _).toList should be(List(2, 4, 6, 8))
+  }

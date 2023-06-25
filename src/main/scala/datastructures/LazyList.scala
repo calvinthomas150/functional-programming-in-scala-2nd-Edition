@@ -46,7 +46,7 @@ enum LazyList[+A]:
     /* Or via foldRight
     foldRight(LazyList.empty)((a,acc) =>
       if p(a) then cons(a, acc) else LazyList.empty)
-  
+
     or directly
     this match
       case Cons(h, t) if p(h()) => cons(h(), t().takeWhile(p))
@@ -103,6 +103,22 @@ enum LazyList[+A]:
 
   def exists(p: A => Boolean): Boolean =
     foldRight(false)((a, b) => p(a) || b)
+
+  def startsWith[B](prefix: LazyList[B]): Boolean =
+    zipAll(prefix).takeWhile(_(1).isDefined).forAll((a1, a2) => a1 == a2)
+
+  def tails: LazyList[LazyList[A]] =
+    unfold(this):
+      case Empty => None
+      case Cons(h, t) => Some((Cons(h, t), t()))
+    .append(LazyList(LazyList.empty))
+
+  def scanRight[B](init: B)(f: (A, => B) => B): LazyList[B] =
+    foldRight(init -> LazyList(init)): (a, b0) =>
+      lazy val b1 = b0
+      val b2 = f(a, b1(0))
+      (b2, cons(b2, b1(1)))
+    .apply(1)
 
 object LazyList:
 

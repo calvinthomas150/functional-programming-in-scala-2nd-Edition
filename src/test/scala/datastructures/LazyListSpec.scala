@@ -79,6 +79,29 @@ class LazyListSpec extends AnyFlatSpec with should.Matchers:
     LazyList(1, 2, 3, 4, 5).zipAll(LazyList(1, 2, 3, 4, 5)).toList should be
     List((Some(1), Some(1)), (Some(2), Some(2)), (Some(3), Some(3)), (Some(4), Some(4)), (Some(5), Some(5)))
 
-  "zipWith" should "correctly add pairwise when using the zipWith function with addition and two lists of the same size" in {
+  "zipWith" should "correctly add pairwise when using the zipWith function with addition and two lists of the same size" in:
     LazyList(1,2,3,4).zipWith(LazyList(1,2,3,4))(_ + _).toList should be(List(2, 4, 6, 8))
-  }
+
+  "startsWith" should "return true if the prefix matches the start of the LazyList" in:
+    LazyList(1,2,3,4,5).startsWith(LazyList(1,2,3)) should be(true)
+
+
+  "tails" should "return all suffixes of a non-empty list" in:
+    val list = LazyList(1, 2, 3)
+    val result = list.tails.toList.map(_.toList)
+    result should be(List(List(1, 2, 3), List(2, 3), List(3), List()))
+
+  it should "return a list with an empty list for an empty list" in:
+    val list = LazyList.empty[Int]
+    val result = list.tails.toList.map(_.toList)
+    result should be(List(List()))
+
+  "scanRight" should "apply the binary operation from right to left, keeping the intermediate results" in:
+    val list = LazyList(1, 2, 3)
+    val result = list.scanRight(0)(_ + _).toList
+    result should be(List(6, 5, 3, 0))
+
+  it should "include the initial value for an empty list" in:
+    val list = LazyList.empty[Int]
+    val result = list.scanRight(0)(_ + _).toList
+    result should be(List(0))

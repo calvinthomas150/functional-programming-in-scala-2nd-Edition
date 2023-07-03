@@ -56,3 +56,31 @@ class RNGSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyCh
         d1 should not be d2
         d1 should not be d3
         d2 should not be d3
+
+  "ints" should "return n random ints, when called with a count of n" in:
+    forAll(simpleRNGs):
+      (rng: RNG) =>
+        val ints = RNG.ints(1000)(rng)
+        ints._1.size should be (1000)
+        ints._1.distinct should be (ints._1)
+
+  "nonNegativeEven" should "return a rqndom even integer" in:
+    forAll(simpleRNGs):
+      (rng: RNG) =>
+        val (i, _) = RNG.nonNegativeEven(rng)
+        i should be >= 0
+        i % 2 should be (0)
+
+  "doubleViaMap" should "return a random double between 0 and 1 inclusive" in :
+    forAll(simpleRNGs):
+      (rng: RNG) =>
+        val (d, r) = RNG.doubleViaMap(rng)
+        d should (be >= 0d and be <= 1d)
+
+  "unit" should "keep the value and the state the same" in:
+    forAll { (a: Int, seed: Long) =>
+      val rng = SimpleRNG(seed)
+      val (result, rng2) = RNG.unit(a)(rng)
+      result should be(a)
+      rng should be(rng2)
+    }

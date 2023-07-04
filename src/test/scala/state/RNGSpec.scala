@@ -71,7 +71,7 @@ class RNGSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyCh
         i should be >= 0
         i % 2 should be (0)
 
-  "doubleViaMap" should "return a random double between 0 and 1 inclusive" in :
+  "doubleViaMap" should "return a random double between 0 and 1 inclusive" in:
     forAll(simpleRNGs):
       (rng: RNG) =>
         val (d, r) = RNG.doubleViaMap(rng)
@@ -84,3 +84,30 @@ class RNGSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyCh
       result should be(a)
       rng should be(rng2)
     }
+
+  "randIntDouble" should "return a random int and a random double between 0 and 1 inclusive that are not the same" in:
+    forAll(simpleRNGs):
+      (rng: RNG) =>
+        val ((i, d), r) = RNG.intDouble(rng)
+        d should (be >= 0d and be <= 1d)
+        d should not be i.toDouble
+
+  "randDoubleInt" should "return a random double between 0 and 1 inclusive and a random int that are not the same" in:
+    forAll(simpleRNGs):
+      (rng: RNG) =>
+        val ((d, i), r) = RNG.doubleInt(rng)
+        d should (be >= 0d and be <= 1d)
+        d should not be i.toDouble
+
+  "intsWithSequence" should "return n random ints, when called with a count of n" in:
+    forAll(simpleRNGs):
+      (rng: RNG) =>
+        val ints = RNG.intsViaSequence(1000)(rng)
+        ints._1.size should be(1000)
+        ints._1.distinct should be(ints._1)
+
+  "nonNegativeLessThan" should "return  random integer that is less than the supplied value" in:
+    forAll(simpleRNGs):
+      (rng: RNG) =>
+        val int = RNG.nonNegativeLessThan(10)(rng)
+        int._1 should be < 10

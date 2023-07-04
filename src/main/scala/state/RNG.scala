@@ -47,9 +47,10 @@ object RNG:
   def unit[A](a:A): Rand[A] = rng => (a, rng)
 
   def map[A, B](s: Rand[A])(f: A => B): Rand[B] =
-    rng =>
+    flatMap(s)(a => unit(f(a)))
+    /*rng =>
       val (a, rng2) = s(rng)
-      (f(a), rng2)
+      (f(a), rng2)*/
 
   def nonNegativeEven: Rand[Int] =
      map(nonNegativeInt)(i => i - (i % 2))
@@ -57,4 +58,39 @@ object RNG:
   def doubleViaMap: Rand[Double] =
     map(nonNegativeInt)(i => i.toDouble / Int.MaxValue)
 
-  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = ???
+  def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
+    flatMap(ra)(a => map(rb)(b => f(a,b)))
+    /*rng =>
+      val (a, rng2) = ra(rng)
+      val (b, rng3) = rb(rng2)
+      (f(a,b), rng3)*/
+
+  def both[A, B](ra: Rand[A], rb: Rand[B]): Rand[(A, B)] =
+    map2(ra, rb)((_,_))
+
+  val randIntDouble: Rand[(Int, Double)] =
+    both(int, double)
+
+  val randDoubleInt: Rand[(Double, Int)] =
+    both(double, int)
+
+  def sequence[A](rs: List[Rand[A]]): Rand[List[A]] =
+  /* This is somewhat tricky, so here's an explanation:
+     we use unit to pass through the rng without using it, and to get the empty starting list we want
+     map2 is used to combine the actions from the acc and the input element and then we combine them using ::
+  */
+  rs.foldRight(unit(Nil: List[A]))((r, acc) => map2(r, acc)(_ :: _))
+
+  def intsViaSequence(count: Int): Rand[List[Int]] =
+    sequence(List.fill(count)(int))
+
+  def flatMap[A, B](r: Rand[A])(f: A => Rand[B]): Rand[B] =
+    rng =>
+      val (a, rng2) = r(rng)
+      f(a)(rng2)
+
+  def nonNegativeLessThan(n: Int): Rand[Int] =
+    flatMap(nonNegativeInt): i =>
+        val mod = i % n
+        if i + (n - 1) - mod >= 0 then unit(mod) else nonNegativeLessThan(n)
+
